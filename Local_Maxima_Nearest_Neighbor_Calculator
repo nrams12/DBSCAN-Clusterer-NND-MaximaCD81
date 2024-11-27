@@ -1,0 +1,113 @@
+%% Local Maxima Nearest Neighbor Calculator
+%This code inputs two .csv files containing the XY coordinates of the
+%center of a local maximum in an image. The program then compared the files
+%to itself and the other file to calculate the nearest neighbor distances.
+%The distances are then compiled and exported. Visualizations the frequency
+%distributions are displayed. 
+
+%% Close all and Import Data 
+clear variables; close all; clc; close all hidden;
+disp("Previous Data Cleared; Program Initializing"); 
+if not(isfolder('MATLABData'))
+    mkdir('MATLABData')
+end
+folder = string(pwd)+'\MATLABData\';
+[fname1,directory1] = uigetfile('*.csv','Please choose the first .csv file'); %the user selects a file
+tic;
+fileName1 = fullfile(directory1, fname1); %takes directory/filename.txt and stores to fullname var
+Data1 = readmatrix(fileName1);%reads in file to Data var
+RawXData1 = Data1(:,2); %separate X data
+RawYData1 = Data1(:,3); %separate Y data
+RawXYData1 = [RawXData1,RawYData1]; 
+
+[fname2,directory2] = uigetfile('*.csv','Please choose the second .csv file'); %the user selects a file
+tic;
+fileName2 = fullfile(directory2, fname2); %takes directory/filename.txt and stores to fullname var
+Data2 = readmatrix(fileName2);%reads in file to Data var
+RawXData2 = Data2(:,2); %separate X data
+RawYData2 = Data2(:,3); %separate Y data
+RawXYData2 = [RawXData2,RawYData2]; 
+
+%change units from pixels to nm
+pixel_Size = 54.16678;
+ScaledXData1 = RawXData1 .*pixel_Size;
+ScaledYData1 = RawYData1 .*pixel_Size;
+ScaledXData2 = RawXData2 .*pixel_Size;
+ScaledYData2 = RawYData2 .*pixel_Size;
+%Calculate the distnaces for each point from the first data set to the
+%closest from the other data set
+MnDistHold1to2 = [];
+for i =1:length(RawXYData1)
+    X = ScaledXData1(i);
+    Y = ScaledYData1(i);
+    xydistances = pdist2([X,Y],[ScaledXData2,ScaledYData2]);
+    minDist = min(xydistances(xydistances>0));
+    MnDistHold1to2 = [MnDistHold1to2;minDist];
+
+end
+
+MnDistHold2to1 = [];
+for i =1:length(RawXYData2)
+    X = ScaledXData2(i);
+    Y = ScaledYData2(i);
+    xydistances = pdist2([X,Y],[ScaledXData1,ScaledYData1]);
+    
+    minDist = min(xydistances(xydistances>0));
+    MnDistHold2to1 = [MnDistHold2to1;minDist];
+end
+
+MnDistHold1to1 = [];
+for i =1:length(RawXYData1)
+    X = ScaledXData1(i);
+    Y = ScaledYData1(i);
+    xydistances = pdist2([X,Y],[ScaledXData1,ScaledYData1]);
+    minDist = min(xydistances(xydistances>0));
+    MnDistHold1to1 = [MnDistHold1to1;minDist];
+
+end
+
+MnDistHold2to2 = [];
+for i =1:length(RawXYData2)
+    X = ScaledXData2(i);
+    Y = ScaledYData2(i);
+    xydistances = pdist2([X,Y],[ScaledXData2,ScaledYData2]);
+    minDist = min(xydistances(xydistances>0));
+    MnDistHold2to2 = [MnDistHold2to2;minDist];
+end
+
+%Averages
+avgMnDistHold1to2 = sum(MnDistHold1to2)/length(MnDistHold1to2);
+avgMnDistHold2to1 = sum(MnDistHold2to1)/length(MnDistHold2to1);
+avgMnDistHold1to1 = sum(MnDistHold1to1)/length(MnDistHold1to1);
+avgMnDistHold2to2 = sum(MnDistHold2to2)/length(MnDistHold2to2);
+
+disp(['Average Distance of CD81 to CD63: ', num2str(avgMnDistHold1to2), ' nm']);
+disp(['Average Distance of CD63 to CD81: ', num2str(avgMnDistHold2to1), ' nm']);
+disp(['Average Distance of CD81 to CD81: ', num2str(avgMnDistHold1to1), ' nm']);
+disp(['Average Distance of CD63 to CD63: ', num2str(avgMnDistHold2to2), ' nm']);
+
+%Display the results
+figure();
+histogram(MnDistHold1to1,'BinWidth',50,'FaceColor',"#7E2F8E");
+hold on
+histogram(MnDistHold1to2,'BinWidth',50,'FaceColor',"#77AC30");
+title('CD81toCD81 (Purple) vs CD81toCD63 (Green)');
+
+figure();
+histogram(MnDistHold2to2,'BinWidth',50,'FaceColor',"#7E2F8E");
+hold on
+histogram(MnDistHold2to1,'BinWidth',50,'FaceColor',"#77AC30");
+title('CD63toCD63 (Purple) vs CD63toCD81 (Green)');
+
+figure();
+histogram(MnDistHold1to2,'BinWidth',50,'FaceColor',"#A2142F");
+hold on
+histogram(MnDistHold2to1,'BinWidth',50,'FaceColor',"g");
+title('CD81toCD63 (Red) vs CD63toCD81 (Green)');
+
+
+%write to file
+writematrix(MnDistHold1to2, "1to2Data.csv",'WriteMode','append');
+writematrix(MnDistHold2to1, "2to1Data.csv",'WriteMode','append');
+writematrix(MnDistHold1to1, "1to1Data.csv",'WriteMode','append');
+writematrix(MnDistHold2to2, "2to2Data.csv",'WriteMode','append');
