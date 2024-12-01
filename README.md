@@ -1,5 +1,5 @@
 # DBSCAN-Clusterer-NND-Maxima
-%This README contains two codes utilized in this manuscript. 
+%This repository contains two codes utilized in this manuscript. 
 
 
 %%DBSCAN Code for SMLM Data (dSTORM)
@@ -26,7 +26,7 @@ The final section of the code exports the data into a .csv file.
 
 Program complete.
 
-%%Maxima NND Code
+%%Maxima NND Code (SIM)
 Description: This code inputs two lists of X and Y coordinates obtained from ImageJ from two channels. The code then calculates the distance from each point to another and finds the shortest one aside from itself (when applicable). The shortest distance is called the nearest neighbor distance (NND). The program compares the nearest neighbor distances from each data set to itself and the other data set. 
 
 To use the program:
